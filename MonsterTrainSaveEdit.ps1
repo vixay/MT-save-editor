@@ -39,36 +39,37 @@ function Test-Debug {
         ((-not $IgnorePSDebugContext.IsPresent) -and ($PSDebugContext))
     }
 }
+Function Init() {
+    #$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
+    #$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
+    #$PSScriptRoot wasn't working for some reason in VSCODE
+    $global:MyScriptRoot = Split-Path -Parent $PSCommandPath
+    Write-Debug "Script Path: $MyScriptRoot"
+    if (Test-Debug) {
+        $global:sf = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+    }
+    else {
+        $global:sf = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
+    }
+    $global:relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
+    $global:cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
+    $global:jsonf = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
+    Write-Debug "Savefile: $sf"
+    #Write-Debug $relicscsvfile
+    Write-Debug "JSON location: $jsonf"
 
-#$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
-#$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
-#$PSScriptRoot wasn't working for some reason in VSCODE
-$MyScriptRoot = Split-Path -Parent $PSCommandPath
-Write-Debug "Script Path: $MyScriptRoot"
-if (Test-Debug) {
-    $files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
-}
-else {
-    $files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
-}
-$relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
-$cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
-$jsonfiles = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
-Write-Debug "Savefile: $files"
-#Write-Debug $relicscsvfile
-Write-Debug "JSON location: $jsonfiles"
+    #setup lookup for the relic ids from the CSV
+    $global:relicsTable = @{} 
+    $global:relicsCsv = Import-Csv $relicscsvfile
+    $relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
-#setup lookup for the relic ids from the CSV
-$relicsTable = @{} 
-$relicsCsv = Import-Csv $relicscsvfile
-$relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
-
-#setup cards csv
-$cardsCsv = Import-Csv $cardscsvfile
-$cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
-if (Test-Debug) {
-    #$cardsCsv | Out-GridView
-    #$cardsTable | Out-GridView
+    #setup cards csv
+    $global:cardsCsv = Import-Csv $cardscsvfile
+    $global:cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
+    if (Test-Debug) {
+        #$cardsCsv | Out-GridView
+        #$cardsTable | Out-GridView
+    }
 }
 Function LookupRelics ($relicids) {
     $datasrc = @{}
@@ -97,7 +98,7 @@ Function LookupCards($cards) {
 }
 
 Function LoadJsonBundles($bname) {
-    $files = Get-ChildItem $jsonfiles
+    $files = Get-ChildItem $jsonf
     $bundles = @{}
     foreach ($file in $files) {
         $name = Split-Path $file -leaf 
@@ -121,19 +122,11 @@ Function LoadJsonBundles($bname) {
 
 #Process save file
 Function LoadSaveFile() {
-    $save = $false
-    $snapshot = (Get-Content ($files) | ConvertFrom-Json)
+    $global:snapshot = (Get-Content ($sf) | ConvertFrom-Json)
     Write-Debug "=== Existing Artifacts ===" #$snapshot.blessings
     LookupRelics($snapshot.blessings)
     # add the new relics from the list above
     #$snapshot.blessings+=$artifacts
-    $bundle = LoadJsonBundles("freestuff")
-    if ($bundle) {
-        $snapshot.blessings+=$bundle
-        Write-Debug "=== Modified Artifacts ===" #+ $snapshot.blessings
-        LookupRelics($snapshot.blessings)
-        $save=$true
-    }
     #$snapshot.blessings | Out-GridView
     #$datasrc | Out-GridView
     #$relicsTable | Out-GridView
@@ -144,20 +137,32 @@ Function LoadSaveFile() {
     #if (Test-Debug) {$snapshot.deckState | Out-GridView}
     Write-Debug "== Cards List in Deck =="
     LookupCards($snapshot.deckState)
-
-    # SAVE THE FILE
-    if ($save) {
-        Copy-Item $files $files".old" #backup the save file
-        # The -replace is a workaround for the convertto-json converting the > to unicode
-        if (Test-Debug) {$files+=".json"} #don't overwrite the actual save file
-        $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $files
-        #can use the following more general case, from : https://stackoverflow.com/questions/15573415/json-encoding-html-string
-        #[regex]::replace($json,'\\u[a-fA-F0-9]{4}',{[char]::ConvertFromUtf32(($args[0].Value -replace '\\u','0x'))})
-        
-        # or from https://stackoverflow.com/questions/29306439/powershell-convertto-json-problem-containing-special-characters
-        #% { [System.Text.RegularExpressions.Regex]::Unescape($_) } 
-        # but apparently that has sideeffects, have to test both and see which works better
-    }
-
+    Return $snapshot
 }
-LoadSaveFile
+Function ModifySaveFile() {
+    $bundle = LoadJsonBundles("freestuff")
+    if ($bundle) {
+        $snapshot.blessings+=$bundle
+        Write-Debug "=== Modified Artifacts ===" #+ $snapshot.blessings
+        LookupRelics($snapshot.blessings)
+        Return $true
+    }
+    Return $false
+}
+
+Function SaveFile() {
+    # SAVE THE FILE
+    Copy-Item $sf $sf".old" #backup the save file
+    # The -replace is a workaround for the convertto-json converting the > to unicode
+    if (Test-Debug) {$sf+=".json"} #don't overwrite the actual save file
+    $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $sf
+    #can use the following more general case, from : https://stackoverflow.com/questions/15573415/json-encoding-html-string
+    #[regex]::replace($json,'\\u[a-fA-F0-9]{4}',{[char]::ConvertFromUtf32(($args[0].Value -replace '\\u','0x'))})
+    
+    # or from https://stackoverflow.com/questions/29306439/powershell-convertto-json-problem-containing-special-characters
+    #% { [System.Text.RegularExpressions.Regex]::Unescape($_) } 
+    # but apparently that has sideeffects, have to test both and see which works better
+}
+Init
+$mtsave = LoadSaveFile
+if (ModifySaveFile) {SaveFile}
