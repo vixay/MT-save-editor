@@ -1,134 +1,16 @@
-﻿function ConvertTo-Object($hashtable) 
-{
-   $object = New-Object PSObject
-   $hashtable.GetEnumerator() | 
-      ForEach-Object { Add-Member -inputObject $object `
-	  	-memberType NoteProperty -name $_.Name -value $_.Value }
-   $object
-}
-#Credit: SAPIEN
+﻿#setup lookup for the relic ids from the CSV
+$relicsTable = @{} 
+$relicsCsv = Import-Csv '.\MT_Relics.csv' 
+$relicsCsv | %{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
-function ConvertTo-DataTable
-{
-	<#
-		.SYNOPSIS
-			Converts objects into a DataTable.
-	
-		.DESCRIPTION
-			Converts objects into a DataTable, which are used for DataBinding.
-	
-		.PARAMETER  InputObject
-			The input to convert into a DataTable.
-	
-		.PARAMETER  Table
-			The DataTable you wish to load the input into.
-	
-		.PARAMETER RetainColumns
-			This switch tells the function to keep the DataTable's existing columns.
-		
-		.PARAMETER FilterWMIProperties
-			This switch removes WMI properties that start with an underline.
-	
-		.EXAMPLE
-			$DataTable = ConvertTo-DataTable -InputObject (Get-Process)
-	#>
-	[OutputType([System.Data.DataTable])]
-	param(
-	[ValidateNotNull()]
-	$InputObject, 
-	[ValidateNotNull()]
-	[System.Data.DataTable]$Table,
-	[switch]$RetainColumns,
-	[switch]$FilterWMIProperties)
-	
-	if($Table -eq $null)
-	{
-		$Table = New-Object System.Data.DataTable
-	}
-
-	if($InputObject-is [System.Data.DataTable])
-	{
-		$Table = $InputObject
-	}
-	else
-	{
-		if(-not $RetainColumns -or $Table.Columns.Count -eq 0)
-		{
-			#Clear out the Table Contents
-			$Table.Clear()
-
-			if($InputObject -eq $null){ return } #Empty Data
-			
-			$object = $null
-			#find the first non null value
-			foreach($item in $InputObject)
-			{
-				if($item -ne $null)
-				{
-					$object = $item
-					break	
-				}
-			}
-
-			if($object -eq $null) { return } #All null then empty
-			
-			#Get all the properties in order to create the columns
-			foreach ($prop in $object.PSObject.Get_Properties())
-			{
-				if(-not $FilterWMIProperties -or -not $prop.Name.StartsWith('__'))#filter out WMI properties
-				{
-					#Get the type from the Definition string
-					$type = $null
-					
-					if($prop.Value -ne $null)
-					{
-						try{ $type = $prop.Value.GetType() } catch {}
-					}
-
-					if($type -ne $null) # -and [System.Type]::GetTypeCode($type) -ne 'Object')
-					{
-		      			[void]$table.Columns.Add($prop.Name, $type) 
-					}
-					else #Type info not found
-					{ 
-						[void]$table.Columns.Add($prop.Name) 	
-					}
-				}
-		    }
-			
-			if($object -is [System.Data.DataRow])
-			{
-				foreach($item in $InputObject)
-				{	
-					$Table.Rows.Add($item)
-				}
-				return  @(,$Table)
-			}
-		}
-		else
-		{
-			$Table.Rows.Clear()	
-		}
-		
-		foreach($item in $InputObject)
-		{		
-			$row = $table.NewRow()
-			
-			if($item)
-			{
-				foreach ($prop in $item.PSObject.Get_Properties())
-				{
-					if($table.Columns.Contains($prop.Name))
-					{
-						$row.Item($prop.Name) = $prop.Value
-					}
-				}
-			}
-			[void]$table.Rows.Add($row)
-		}
-	}
-
-	return @(,$Table)	
+Function LookupRelics ($relicids) {
+    $datasrc = @{}
+    foreach($bless in $relicids) {
+        #Write-Host $bless.relicDataID
+        #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
+        #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
+        Write-Host $relicsTable[$bless.relicDataID]
+    }
 }
 
 $files = "save-singlePlayer.json"
@@ -153,42 +35,28 @@ $artifacts = @'
 {"relicDataID":"32634a16-f477-463d-b697-e814197da535"}]
 '@ | ConvertFrom-Json
 
-#setup lookup for the relic ids from the CSV
-$relicsTable = @{} 
-$relicsCsv = Import-Csv '.\MT RELIC.csv' 
-$relicsCsv | %{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
 #Go through all the arrays (files)
 Foreach($file in $files)
 {
     $snapshot = (Get-Content ("./" + $file) | ConvertFrom-Json)
-    Write-Host "before: " $snapshot.blessings
-    $datasrc = @{}
-    foreach($bless in $snapshot.blessings) {
-        #Write-Host $bless.relicDataID
-        #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
-        $datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID} | ConvertTo-Object
-        #Write-Host $relicsTable[$bless.relicDataID]
-    }
-
-
+    Write-Host "before: " #$snapshot.blessings
+    LookupRelics($snapshot.blessings)
 
     $snapshot.blessings+=$blessingstoadd
     $snapshot.blessings+=$blessingstoadd
     $snapshot.blessings+=$artifacts
-    Write-Host "after: " + $snapshot.blessings
-    $datasrc = @{}
-    foreach($bless in $snapshot.blessings) {
-        #Write-Host $bless.relicDataID
-        #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
-        #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
-        #Write-Host $relicsTable[$bless.relicDataID]
-    }
+    Write-Host "after: " #+ $snapshot.blessings
+    LookupRelics($snapshot.blessings)
+
     #$snapshot.blessings | Out-GridView
-    $datasrc | Out-GridView
+    #$datasrc | Out-GridView
     #$relicsTable | Out-GridView
     #$relicsCsv | Out-GridView
     #$playerblessings | Out-GridView
+
+
+    # SAVE THE SAVE FILE
     #Write-Host "new file:"
     # The -replace is a workaround for the convertto-json converting the > to unicode
     $snapshot | ConvertTo-Json -Depth 10 -Compress| % {$_ -replace "\\u003e",">"}| Set-Content $files".json"
@@ -209,3 +77,4 @@ Foreach($file in $files)
     # $snapshot.properties.availability.frequency
     # -> $Frequency$
 }
+
