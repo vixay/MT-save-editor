@@ -44,15 +44,19 @@ function Test-Debug {
 #$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
 #$PSScriptRoot wasn't working for some reason in VSCODE
 $MyScriptRoot = Split-Path -Parent $PSCommandPath
-Write-Debug $MyScriptRoot
-#$files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
-$files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
+Write-Debug "Script Path: $MyScriptRoot"
+if (Test-Debug) {
+    $files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+}
+else {
+    $files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
+}
 $relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
 $cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
 $jsonfiles = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
-#Write-Debug $files 
+Write-Debug "Savefile: $files"
 #Write-Debug $relicscsvfile
-Write-Debug $jsonfiles
+Write-Debug "JSON location: $jsonfiles"
 
 #setup lookup for the relic ids from the CSV
 $relicsTable = @{} 
@@ -145,7 +149,8 @@ Function LoadSaveFile() {
     if ($save) {
         Copy-Item $files $files".old" #backup the save file
         # The -replace is a workaround for the convertto-json converting the > to unicode
-        $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $files".json"
+        if (Test-Debug) {$files+=".json"} #don't overwrite the actual save file
+        $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $files
         #can use the following more general case, from : https://stackoverflow.com/questions/15573415/json-encoding-html-string
         #[regex]::replace($json,'\\u[a-fA-F0-9]{4}',{[char]::ConvertFromUtf32(($args[0].Value -replace '\\u','0x'))})
         
