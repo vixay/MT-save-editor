@@ -40,35 +40,37 @@ function Test-Debug {
     }
 }
 
-#$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
-#$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
-#$PSScriptRoot wasn't working for some reason in VSCODE
-$MyScriptRoot = Split-Path -Parent $PSCommandPath
-Write-Debug "Script Path: $MyScriptRoot"
-if (Test-Debug) {
-    $files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
-}
-else {
-    $files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
-}
-$relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
-$cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
-$jsonfiles = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
-Write-Debug "Savefile: $files"
-#Write-Debug $relicscsvfile
-Write-Debug "JSON location: $jsonfiles"
+Function Init() {
+    #$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
+    #$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
+    #$PSScriptRoot wasn't working for some reason in VSCODE
+    $MyScriptRoot = Split-Path -Parent $PSCommandPath
+    Write-Debug "Script Path: $MyScriptRoot"
+    if (Test-Debug) {
+        $files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+    }
+    else {
+        $files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
+    }
+    $relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
+    $cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
+    $jsonfiles = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
+    Write-Debug "Savefile: $files"
+    #Write-Debug $relicscsvfile
+    Write-Debug "JSON location: $jsonfiles"
 
-#setup lookup for the relic ids from the CSV
-$relicsTable = @{} 
-$relicsCsv = Import-Csv $relicscsvfile
-$relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
+    #setup lookup for the relic ids from the CSV
+    $relicsTable = @{} 
+    $relicsCsv = Import-Csv $relicscsvfile
+    $relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
-#setup cards csv
-$cardsCsv = Import-Csv $cardscsvfile
-$cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
-if (Test-Debug) {
-    #$cardsCsv | Out-GridView
-    #$cardsTable | Out-GridView
+    #setup cards csv
+    $cardsCsv = Import-Csv $cardscsvfile
+    $cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
+    if (Test-Debug) {
+        #$cardsCsv | Out-GridView
+        #$cardsTable | Out-GridView
+    }
 }
 Function LookupRelics ($relicids) {
     $datasrc = @{}
@@ -160,4 +162,5 @@ Function LoadSaveFile() {
     }
 
 }
+Init
 LoadSaveFile
