@@ -63,13 +63,15 @@ if (Test-Debug) {
     #$cardsCsv | Out-GridView
 }
 Function LookupRelics ($relicids) {
-    #$datasrc = @{}
+    $datasrc = @{}
     foreach($bless in $relicids) {
-        #Write-Host $bless.relicDataID
-        #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
+        #Write-Debug $bless.relicDataID
+        #$datasrc[$bless.relicDataID] = @{Description = $relicsTable[$bless.relicDataID] }
+        $datasrc[$bless.relicDataID] = $relicsTable[$bless.relicDataID]
         #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
         Write-Debug $relicsTable[$bless.relicDataID]
     }
+    if (Test-Debug) { $datasrc | Out-GridView }
 }
 
 $blessingstoadd = '{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"} ' | ConvertFrom-Json
