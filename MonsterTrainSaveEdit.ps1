@@ -19,7 +19,7 @@
 
 #>
 
-$DebugPreference = "Continue"
+$DebugPreference = "SilentlyContinue"
 
 function Test-Debug {
     [CmdletBinding()]
@@ -54,6 +54,7 @@ Function Init() {
     $global:relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
     $global:cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
     $global:jsonf = Join-Path $MyScriptRoot -ChildPath "*-bundle.json"
+    $global:guif = Join-Path $MyScriptRoot -ChildPath "MTSaveGuiWork.ps1"
     Write-Debug "Savefile: $sf"
     #Write-Debug $relicscsvfile
     Write-Debug "JSON location: $jsonf"
@@ -140,7 +141,7 @@ Function LoadSaveFile() {
     Return $snapshot
 }
 Function ModifySaveFile() {
-    $bundle = LoadJsonBundles("freestuff")
+    $bundle = LoadJsonBundles("OP") #freestuff , OP
     if ($bundle) {
         $snapshot.blessings+=$bundle
         Write-Debug "=== Modified Artifacts ===" #+ $snapshot.blessings
@@ -166,3 +167,7 @@ Function SaveFile() {
 Init
 $mtsave = LoadSaveFile
 if (ModifySaveFile) {SaveFile}
+
+#include the GUI
+. $guif
+
