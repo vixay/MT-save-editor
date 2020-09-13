@@ -1,6 +1,39 @@
-﻿#setup lookup for the relic ids from the CSV
+﻿<#
+    .SYNOPSIS
+        Monster Train Save Game Editor
+
+    .DESCRIPTION
+        Monster Train Save Game Editor that allows you to edit your artifacts (aka relics), and cards
+
+    .EXAMPLE
+        Just run the script
+    .AUTHOR
+        Veejs7er
+    .UPDATE
+        2020-09-13 v1.0 - Basic text version works
+    .TO DO
+        ADD GUI for easy usability
+        READ cards list and show that
+        Enable preview and save
+        Allow bundles of artifacts/cards
+
+#>
+
+$DebugPreference = "Continue"
+
+#$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
+#$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
+$MyScriptRoot = Split-Path -Parent $PSCommandPath
+Write-Debug $MyScriptRoot
+$files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+$relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
+Write-Debug $files 
+Write-Debug $relicscsvfile
+
+
+#setup lookup for the relic ids from the CSV
 $relicsTable = @{} 
-$relicsCsv = Import-Csv '.\MT_Relics.csv' 
+$relicsCsv = Import-Csv $relicscsvfile
 $relicsCsv | %{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
 Function LookupRelics ($relicids) {
@@ -9,11 +42,9 @@ Function LookupRelics ($relicids) {
         #Write-Host $bless.relicDataID
         #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
         #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
-        Write-Host $relicsTable[$bless.relicDataID]
+        Write-Debug $relicsTable[$bless.relicDataID]
     }
 }
-
-$files = "save-singlePlayer.json"
 
 $blessingstoadd = '{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"} ' | ConvertFrom-Json
 $artifacts = @'
@@ -39,7 +70,7 @@ $artifacts = @'
 #Go through all the arrays (files)
 Foreach($file in $files)
 {
-    $snapshot = (Get-Content ("./" + $file) | ConvertFrom-Json)
+    $snapshot = (Get-Content ($file) | ConvertFrom-Json)
     Write-Host "before: " #$snapshot.blessings
     LookupRelics($snapshot.blessings)
 
