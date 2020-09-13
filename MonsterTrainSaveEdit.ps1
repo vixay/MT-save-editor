@@ -89,6 +89,26 @@ Function LookupCards($cards) {
     $datasrc | Out-GridView
 }
 
+Function LoadJsonBundles($bname) {
+    $files = Get-ChildItem "*-bundle.json"
+    $bundles = @{}
+    foreach ($file in $files) {
+        $name = Split-Path $file -leaf 
+        $name = ($name -split "-bundle.json")[0]
+        Write-Debug $name
+        $c = Get-Content $file | ConvertFrom-Json
+        $bundles[$name] = $c
+        #write-host $c | ConvertTo-Json
+        #$c | Out-GridView
+    }
+    if ($bname -and $bundles[$bname]) {
+        return $bundles[$bname]}
+    else {
+        $choice = $bundles | Out-GridView -OutputMode Single -Title "Choose a bundle and click ok"
+        return $choice.Value
+    }
+}
+
 $artifacts = @'
 [{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
 {"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
@@ -126,14 +146,16 @@ DEBUG: History of the World - +3 space on a random floor
 DEBUG: Railforger's Hammer - +1 space each floor.
 #>
 
-#Go through all the arrays (files)
+#Process save file
 Foreach($file in $files)
 {
     $snapshot = (Get-Content ($file) | ConvertFrom-Json)
     Write-Debug "before: " #$snapshot.blessings
     LookupRelics($snapshot.blessings)
     # add the new relics from the list above
-    $snapshot.blessings+=$artifacts
+    #$snapshot.blessings+=$artifacts
+    $bundle = LoadJsonBundles
+    $snapshot.blessings+=$bundle
     Write-Debug "after: " #+ $snapshot.blessings
     LookupRelics($snapshot.blessings)
 
@@ -148,6 +170,7 @@ Foreach($file in $files)
     LookupCards($snapshot.deckState)
 
     # SAVE THE SAVE FILE
+    Copy-Item $files $files".old" #backup the save file
     #Write-Host "new file:"
     # The -replace is a workaround for the convertto-json converting the > to unicode
     $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $files".json"
