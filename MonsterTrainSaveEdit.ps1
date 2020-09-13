@@ -14,6 +14,7 @@
     .TO DO
         ADD GUI for easy usability
         READ cards list and show that
+        Need to generate upgrades CSV as well then
         Enable preview and save
         Allow bundles of artifacts/cards
 
@@ -21,12 +22,32 @@
 
 $DebugPreference = "Continue"
 
+function Test-Debug {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false)]
+        [switch]$IgnorePSBoundParameters
+        ,
+        [Parameter(Mandatory = $false)]
+        [switch]$IgnoreDebugPreference
+        ,
+        [Parameter(Mandatory = $false)]
+        [switch]$IgnorePSDebugContext
+    )
+    process {
+        ((-not $IgnoreDebugPreference.IsPresent) -and ($DebugPreference -ne "SilentlyContinue")) -or
+        ((-not $IgnorePSBoundParameters.IsPresent) -and $PSBoundParameters.Debug.IsPresent) -or
+        ((-not $IgnorePSDebugContext.IsPresent) -and ($PSDebugContext))
+    }
+}
+
 #$MyScriptRoot = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
 #$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
 $MyScriptRoot = Split-Path -Parent $PSCommandPath
 Write-Debug $MyScriptRoot
 $files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
 $relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
+$cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
 Write-Debug $files 
 Write-Debug $relicscsvfile
 
@@ -34,10 +55,15 @@ Write-Debug $relicscsvfile
 #setup lookup for the relic ids from the CSV
 $relicsTable = @{} 
 $relicsCsv = Import-Csv $relicscsvfile
-$relicsCsv | %{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
+$relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
 
+#setup cards csv
+$cardsCsv = Import-Csv $cardscsvfile
+if (Test-Debug) {
+    #$cardsCsv | Out-GridView
+}
 Function LookupRelics ($relicids) {
-    $datasrc = @{}
+    #$datasrc = @{}
     foreach($bless in $relicids) {
         #Write-Host $bless.relicDataID
         #$datasrc = @{ID = $bless; Description = $relicsTable[$bless.relicDataID]}
@@ -71,13 +97,13 @@ $artifacts = @'
 Foreach($file in $files)
 {
     $snapshot = (Get-Content ($file) | ConvertFrom-Json)
-    Write-Host "before: " #$snapshot.blessings
+    Write-Debug "before: " #$snapshot.blessings
     LookupRelics($snapshot.blessings)
 
     $snapshot.blessings+=$blessingstoadd
     $snapshot.blessings+=$blessingstoadd
     $snapshot.blessings+=$artifacts
-    Write-Host "after: " #+ $snapshot.blessings
+    Write-Debug "after: " #+ $snapshot.blessings
     LookupRelics($snapshot.blessings)
 
     #$snapshot.blessings | Out-GridView
@@ -86,11 +112,13 @@ Foreach($file in $files)
     #$relicsCsv | Out-GridView
     #$playerblessings | Out-GridView
 
+    #show cards list
+    #if (Test-Debug) {$snapshot.deckState | Out-GridView}
 
     # SAVE THE SAVE FILE
     #Write-Host "new file:"
     # The -replace is a workaround for the convertto-json converting the > to unicode
-    $snapshot | ConvertTo-Json -Depth 10 -Compress| % {$_ -replace "\\u003e",">"}| Set-Content $files".json"
+    $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $files".json"
     
     #can use the following more general case, from : https://stackoverflow.com/questions/15573415/json-encoding-html-string
     #[regex]::replace($json,'\\u[a-fA-F0-9]{4}',{[char]::ConvertFromUtf32(($args[0].Value -replace '\\u','0x'))})

@@ -1,3 +1,6 @@
+Source of csv files 
+https://docs.google.com/spreadsheets/d/1YPfFN88ss1Ye-j6M5HehKf-NxuIJHrfA-75xeSVKMQY/edit#gid=1244805614
+
 LUA CODE TO add card
 local str=allocateMemory(100)
 writeInteger(str+0x10,36)
