@@ -16,3 +16,18 @@ writeString(str+0x14,'10000',true)
 LaunchMonoDataCollector()
 mono_invoke_method('',mono_findMethod('', 'CheatManager', 'Command_AdjustGold'), 0,{{type=vtPointer,value=str}})
 deAlloc(str)
+
+
+        {
+            "cardDataID": "9f4dd6b6-4a03-4e2d-9a52-8a17b1dd2c93",
+            "cardModifiers": {
+                "additionalDamage": 0,
+                "additionalMaxHP": 0,
+                "additionalCost": 0,
+                "additionalXCost": 0,
+                "additionalHeal": 0,
+                "additionalSize": 0,
+                "cardTraitReplacements": [],
+                "cardUpgrades": []
+            }
+        },

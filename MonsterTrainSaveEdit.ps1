@@ -7,11 +7,10 @@
 
     .EXAMPLE
         Just run the script
-    .AUTHOR
-        Veejs7er
-    .UPDATE
-        2020-09-13 v1.0 - Basic text version works
-    .TO DO
+    .NOTES
+        Author: Veejs7er
+        Last Update: 2020-09-13 v1.0 - Basic text version works
+        TO DO:
         ADD GUI for easy usability
         READ cards list and show that
         Need to generate upgrades CSV as well then
@@ -45,7 +44,8 @@ function Test-Debug {
 #$MyScriptRoot = split-path -parent $MyInvocation.MyCommand.Definition
 $MyScriptRoot = Split-Path -Parent $PSCommandPath
 Write-Debug $MyScriptRoot
-$files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+#$files = Join-Path $MyScriptRoot -ChildPath "save-singlePlayer.json"
+$files = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
 $relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
 $cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
 Write-Debug $files 
@@ -59,8 +59,10 @@ $relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.D
 
 #setup cards csv
 $cardsCsv = Import-Csv $cardscsvfile
+$cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
 if (Test-Debug) {
     #$cardsCsv | Out-GridView
+    #$cardsTable | Out-GridView
 }
 Function LookupRelics ($relicids) {
     $datasrc = @{}
@@ -71,17 +73,29 @@ Function LookupRelics ($relicids) {
         #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
         Write-Debug $relicsTable[$bless.relicDataID]
     }
-    if (Test-Debug) { $datasrc | Out-GridView }
+    #if (Test-Debug) { $datasrc | Out-GridView }
 }
 
-$blessingstoadd = '{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"} ' | ConvertFrom-Json
+Function LookupCards($cards) {
+    $datasrc = @{}
+    foreach ($card in $cards) {
+        if ($cardsTable[$card.cardDataID].Name) {
+            $datasrc[$card.cardDataID] = $cardsTable[$card.cardDataID].Name
+        } else {
+            $datasrc[$card.cardDataID] = "#Not in CSV"
+        }
+        Write-Debug $datasrc[$card.cardDataID]
+    }
+    $datasrc | Out-GridView
+}
+
 $artifacts = @'
-[{"relicDataID":"b8071ec7-60b6-4526-bd2e-877ba90310d0"}, 
+[{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
+{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
+{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
+{"relicDataID":"ffcb6931-e45e-4e27-bacf-4c649779c2be"},
+{"relicDataID":"b8071ec7-60b6-4526-bd2e-877ba90310d0"}, 
 {"relicDataID":"18217b11-1a34-436c-9c5a-7326c5b655a0"},
-{"relicDataID":"18217b11-1a34-436c-9c5a-7326c5b655a0"},
-{"relicDataID":"18217b11-1a34-436c-9c5a-7326c5b655a0"},
-{"relicDataID":"18217b11-1a34-436c-9c5a-7326c5b655a0"},
-{"relicDataID":"51d95691-d59e-42f1-84ba-8c530743df69"},
 {"relicDataID":"51d95691-d59e-42f1-84ba-8c530743df69"},
 {"relicDataID":"f3f07b9b-1349-41d0-abab-bd5ec04d81e4"},
 {"relicDataID":"b7822614-96ec-4ace-9029-6efc8adef374"},
@@ -93,7 +107,24 @@ $artifacts = @'
 {"relicDataID":"ba36ec3c-9bb8-4428-b15b-d989cf70216b"},
 {"relicDataID":"32634a16-f477-463d-b697-e814197da535"}]
 '@ | ConvertFrom-Json
-
+<#  LookupRelics($artifacts)
+DEBUG: Guild Marker - Merchant costs are reduced by 25%
+DEBUG: Guild Marker - Merchant costs are reduced by 25%
+DEBUG: Guild Marker - Merchant costs are reduced by 25%
+DEBUG: Guild Marker - Merchant costs are reduced by 25%
+DEBUG: Improved Firebox - Gain 7 Ember on the first turn of battle
+DEBUG: Infused Mallet - 25% chance to deal 5 damage when an enemy unit enters your train
+DEBUG: Wing Clippings - Cards with Consume have a 50% chance to be discarded instead
+DEBUG: Winged Steel - When you play your third card of the turn, draw 2
+DEBUG: Collection of Tails - Rage does not decay on friendly units
+DEBUG: Railhammer - Grant +4 stacks of Armor each time it is applied to friendly units
+DEBUG: Scorched Steel - Friendly units enter with Armor 5
+DEBUG: Scorching Restraints - Friendly units enter with Rage 3
+DEBUG: Mine Jacks - +2 space middle floor
+DEBUG: Votive Key - Apply Endless to the first friendly unit summoned this turn
+DEBUG: History of the World - +3 space on a random floor
+DEBUG: Railforger's Hammer - +1 space each floor.
+#>
 
 #Go through all the arrays (files)
 Foreach($file in $files)
@@ -101,9 +132,7 @@ Foreach($file in $files)
     $snapshot = (Get-Content ($file) | ConvertFrom-Json)
     Write-Debug "before: " #$snapshot.blessings
     LookupRelics($snapshot.blessings)
-
-    $snapshot.blessings+=$blessingstoadd
-    $snapshot.blessings+=$blessingstoadd
+    # add the new relics from the list above
     $snapshot.blessings+=$artifacts
     Write-Debug "after: " #+ $snapshot.blessings
     LookupRelics($snapshot.blessings)
@@ -116,6 +145,7 @@ Foreach($file in $files)
 
     #show cards list
     #if (Test-Debug) {$snapshot.deckState | Out-GridView}
+    LookupCards($snapshot.deckState)
 
     # SAVE THE SAVE FILE
     #Write-Host "new file:"
