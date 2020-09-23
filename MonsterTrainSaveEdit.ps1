@@ -127,7 +127,7 @@ Function LoadJsonBundles($bname) {
 Function LoadSaveFile() {
     $global:snapshot = (Get-Content ($sf) | ConvertFrom-Json)
     Write-Debug "=== Existing Artifacts ===" #$snapshot.blessings
-    LookupRelics($snapshot.blessings)
+    $global:blessings = LookupRelics($snapshot.blessings) #for use in GUI 
     # add the new relics from the list above
     #$snapshot.blessings+=$artifacts
     #$snapshot.blessings | Out-GridView

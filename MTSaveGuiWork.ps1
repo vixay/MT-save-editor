@@ -7,16 +7,15 @@ $inputXML = @"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow">
     <Grid>
-        <DataGrid Name="Datagrid" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" Height="400" Margin="0,0,0,0" >
+        <DataGrid Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" >
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding relicDataID}" Width="40" />
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" />
-                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="233"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding Key}" Width="40" />
+                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="233"/>
             </DataGrid.Columns>
         </DataGrid>
-        <DataGrid Name="DGArtifacts" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="350" Height="400" Margin="400,0,0,0" >
+        <DataGrid Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="350" Margin="400,0,0,0" >
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding relicDataID}" Width="40" />
                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" />
@@ -77,10 +76,13 @@ Get-FormVariables
     #===========================================================================
     # Shows the form
     #===========================================================================
-write-host "To show the form, run the following" -ForegroundColor Cyan
+#write-host "To show the form, run the following" -ForegroundColor Cyan
 
 #$WPFDatagrid.AddChild([pscustomobject]@{Name='Stephen';Type=123})
 #$WPFDatagrid.AddChild([pscustomobject]@{Name='Geralt';Type=234})
-$WPFDGArtifacts.ItemsSource = [pscustomobject]$relicsCsv
-$WPFDatagrid.ItemsSource = [pscustomobject]$snapshot.blessings
+$WPFDGArtifacts.ItemsSource = $relicsCsv
+$WPFDGSave.ItemsSource = $blessings #LookupRelics($snapshot.blessings)#[pscustomobject]$snapshot.blessings
+# Format the GUI
+#Write-host "Found columns: $($WPFDGSave.Columns['Key'])"
+#$WPFDGSave.ColumnFromDisplayIndex(0).Width = 20
 $Form.ShowDialog() | out-null
