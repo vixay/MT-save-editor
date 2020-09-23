@@ -9,17 +9,29 @@ $inputXML = @"
         mc:Ignorable="d"
         Title="MainWindow">
     <Grid>
-        <DataGrid Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" >
+        <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Key}" Width="40" />
-                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="233"/>
-            </DataGrid.Columns>
+                <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
+                <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
+                        <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+    </DataGrid.Columns>
         </DataGrid>
-        <DataGrid Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="350" Margin="400,0,0,0" >
+        <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding relicDataID}" Width="40" />
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="233"/>
+                <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding relicDataID}" Width="40" />
+                <DataGridTextColumn IsReadOnly="True" Header="Name" Binding="{Binding Name}" Width="160" />
+                <DataGridTextColumn IsReadOnly="True" Header="Description" Binding="{Binding Description}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
