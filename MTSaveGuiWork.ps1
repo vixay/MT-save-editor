@@ -19,8 +19,9 @@ $inputXML = @"
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-    </DataGrid.Columns>
+            </DataGrid.Columns>
         </DataGrid>
+        <Button Content="Select" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Margin="325,0,0,0" Name="bSelect"/>
         <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden">
             <DataGrid.Columns>
                 <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding relicDataID}" Width="40" />
@@ -68,33 +69,22 @@ get-variable WPF*
 }
   
 Get-FormVariables
-  
-#===========================================================================
-# Use this space to add code to the various form elements in your GUI
-#===========================================================================
-                                                                     
-      
-    #Reference 
-  
-    #Adding items to a dropdown/combo box
-      #$vmpicklistView.items.Add([pscustomobject]@{'VMName'=($_).Name;Status=$_.Status;Other="Yes"})
-      
-    #Setting the text of a text box to the current PC name    
-      #$WPFtextBox.Text = $env:COMPUTERNAME
-      
-    #Adding code to a button, so that when clicked, it pings a system
-    # $WPFbutton.Add_Click({ Test-connection -count 1 -ComputerName $WPFtextBox.Text
-    # })
-    #===========================================================================
-    # Shows the form
-    #===========================================================================
-#write-host "To show the form, run the following" -ForegroundColor Cyan
 
-#$WPFDatagrid.AddChild([pscustomobject]@{Name='Stephen';Type=123})
-#$WPFDatagrid.AddChild([pscustomobject]@{Name='Geralt';Type=234})
 $WPFDGArtifacts.ItemsSource = $relicsCsv
 $WPFDGSave.ItemsSource = $blessings #LookupRelics($snapshot.blessings)#[pscustomobject]$snapshot.blessings
 # Format the GUI
-#Write-host "Found columns: $($WPFDGSave.Columns['Key'])"
-#$WPFDGSave.ColumnFromDisplayIndex(0).Width = 20
+$WPFDGSave.CanUserSortColumns = $WPFDGArtifacts.CanUserSortColumns = $true;  
+# Handle doubleclick
+$clickEvent = {
+    #param ($sender,$e) #not needed because we access the datagrid directly
+    Write-Host $WPFDGArtifacts.SelectedItems.count
+    Write-Debug "Clicked row $($WPFDGArtifacts.SelectedItems)"
+    $WPFDGArtifacts.SelectedItems | ForEach-Object {
+            Write-Host $_
+        }
+    }
+$WPFDGArtifacts.add_MouseDoubleClick($clickEvent)
+$WPFbSelect.add_Click($clickEvent)
+
+# $WPFDGArtifacts.AddHandler([System.Windows.Controls.DataGrid]::ClickEvent,$clickEvent)    
 $Form.ShowDialog() | out-null
