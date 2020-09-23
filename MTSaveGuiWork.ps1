@@ -9,15 +9,17 @@ $inputXML = @"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <DataGrid Name="Datagrid" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="300" Margin="0,0,0,0" >
+        <DataGrid Name="Datagrid" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" Height="400" Margin="0,0,0,0" >
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="180" />
+                <DataGridTextColumn Header="ID" Binding="{Binding relicDataID}" Width="40" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" />
                 <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="233"/>
             </DataGrid.Columns>
         </DataGrid>
-        <DataGrid Name="DGArtifacts" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="300" Margin="400,0,0,0" >
+        <DataGrid Name="DGArtifacts" AutoGenerateColumns="True" HorizontalAlignment="Left" VerticalAlignment="Top" Width="350" Height="400" Margin="400,0,0,0" >
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="180" />
+                <DataGridTextColumn Header="ID" Binding="{Binding relicDataID}" Width="40" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="160" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="233"/>
             </DataGrid.Columns>
         </DataGrid>
@@ -46,7 +48,7 @@ catch{#if it broke some other way <span class="wp-smiley wp-emoji wp-emoji-bigsm
 # Store Form Objects In PowerShell
 #===========================================================================
   
-$xaml.SelectNodes("//*[@Name]") | %{Set-Variable -Name "WPF$($_.Name)" -Value $Form.FindName($_.Name)}
+$xaml.SelectNodes("//*[@Name]") | ForEach-Object{Set-Variable -Name "WPF$($_.Name)" -Value $Form.FindName($_.Name)}
   
 Function Get-FormVariables{
 if ($global:ReadmeDisplay -ne $true){Write-host "If you need to reference this display again, run Get-FormVariables" -ForegroundColor Yellow;$global:ReadmeDisplay=$true}
@@ -77,6 +79,8 @@ Get-FormVariables
     #===========================================================================
 write-host "To show the form, run the following" -ForegroundColor Cyan
 
-$WPFDatagrid.AddChild([pscustomobject]@{Name='Stephen';Type=123})
-$WPFDatagrid.AddChild([pscustomobject]@{Name='Geralt';Type=234})
+#$WPFDatagrid.AddChild([pscustomobject]@{Name='Stephen';Type=123})
+#$WPFDatagrid.AddChild([pscustomobject]@{Name='Geralt';Type=234})
+$WPFDGArtifacts.ItemsSource = [pscustomobject]$relicsCsv
+$WPFDatagrid.ItemsSource = [pscustomobject]$snapshot.blessings
 $Form.ShowDialog() | out-null

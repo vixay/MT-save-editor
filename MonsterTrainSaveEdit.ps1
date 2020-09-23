@@ -19,7 +19,7 @@
 
 #>
 
-$DebugPreference = "SilentlyContinue"
+$DebugPreference = "Continue" #"SilentlyContinue"
 
 function Test-Debug {
     [CmdletBinding()]
@@ -62,7 +62,7 @@ Function Init() {
     #setup lookup for the relic ids from the CSV
     $global:relicsTable = @{} 
     $global:relicsCsv = Import-Csv $relicscsvfile
-    $relicsCsv | ForEach-Object{ $relicsTable[$_.relicDataID]=$_.Name + " - " + $_.Description}
+    $relicsCsv | ForEach-Object { $relicsTable[$_.relicDataID] = $_.Name + " - " + $_.Description }
 
     #setup cards csv
     $global:cardsCsv = Import-Csv $cardscsvfile
@@ -74,7 +74,7 @@ Function Init() {
 }
 Function LookupRelics ($relicids) {
     $datasrc = @{}
-    foreach($bless in $relicids) {
+    foreach ($bless in $relicids) {
         #Write-Debug $bless.relicDataID
         #$datasrc[$bless.relicDataID] = @{Description = $relicsTable[$bless.relicDataID] }
         $datasrc[$bless.relicDataID] = $relicsTable[$bless.relicDataID]
@@ -90,7 +90,8 @@ Function LookupCards($cards) {
     foreach ($card in $cards) {
         if ($cardsTable[$card.cardDataID].Name) {
             $datasrc[$card.cardDataID] = $cardsTable[$card.cardDataID].Name
-        } else {
+        }
+        else {
             $datasrc[$card.cardDataID] = "#Not in CSV"
         }
         Write-Debug $datasrc[$card.cardDataID]
@@ -114,7 +115,8 @@ Function LoadJsonBundles($bname) {
         #write-host $c | ConvertTo-Json
     }
     if ($bname -and $bundles[$bname]) {
-        return $bundles[$bname]}
+        return $bundles[$bname]
+    }
     else {
         $choice = $bundles | Out-GridView -OutputMode Single -Title "Choose a bundle and click ok"
         return $choice.Value
@@ -143,7 +145,7 @@ Function LoadSaveFile() {
 Function ModifySaveFile() {
     $bundle = LoadJsonBundles("OP") #freestuff , OP
     if ($bundle) {
-        $snapshot.blessings+=$bundle
+        $snapshot.blessings += $bundle
         Write-Debug "=== Modified Artifacts ===" #+ $snapshot.blessings
         LookupRelics($snapshot.blessings)
         Return $true
@@ -155,8 +157,8 @@ Function SaveFile() {
     # SAVE THE FILE
     Copy-Item $sf $sf".old" #backup the save file
     # The -replace is a workaround for the convertto-json converting the > to unicode
-    if (Test-Debug) {$sf+=".json"} #don't overwrite the actual save file
-    $snapshot | ConvertTo-Json -Depth 10 -Compress| ForEach-Object {$_ -replace "\\u003e",">"}| Set-Content $sf
+    if (Test-Debug) { $sf += ".json" } #don't overwrite the actual save file
+    $snapshot | ConvertTo-Json -Depth 10 -Compress | ForEach-Object { $_ -replace "\\u003e", ">" } | Set-Content $sf
     #can use the following more general case, from : https://stackoverflow.com/questions/15573415/json-encoding-html-string
     #[regex]::replace($json,'\\u[a-fA-F0-9]{4}',{[char]::ConvertFromUtf32(($args[0].Value -replace '\\u','0x'))})
     
@@ -166,8 +168,10 @@ Function SaveFile() {
 }
 Init
 $mtsave = LoadSaveFile
-if (ModifySaveFile) {SaveFile}
 
+if (!(Test-Debug)) {
+    if (ModifySaveFile) { SaveFile }
+}
 #include the GUI
 . $guif
 
