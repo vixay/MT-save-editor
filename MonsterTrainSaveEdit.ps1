@@ -19,7 +19,7 @@
 
 #>
 
-$DebugPreference = "Continue" #"SilentlyContinue"
+#$DebugPreference = "Continue" #"SilentlyContinue"
 
 function Test-Debug {
     [CmdletBinding()]
@@ -101,7 +101,7 @@ Function LookupCards($cards) {
 
 Function LoadJsonBundles($bname) {
     $files = Get-ChildItem $jsonf
-    $bundles = @{}
+    $global:bundles = @{}
     foreach ($file in $files) {
         $name = Split-Path $file -leaf 
         $name = ($name -split "-bundle.json")[0]
@@ -142,12 +142,11 @@ Function LoadSaveFile() {
     LookupCards($snapshot.deckState)
     Return $snapshot
 }
-Function ModifySaveFile() {
-    $bundle = LoadJsonBundles("OP") #freestuff , OP
+Function ModifySaveFile($bundle) {
     if ($bundle) {
         $snapshot.blessings += $bundle
         Write-Debug "=== Modified Artifacts ===" #+ $snapshot.blessings
-        LookupRelics($snapshot.blessings)
+        $global:blessings = LookupRelics($snapshot.blessings) #for use in GUI #LookupRelics($snapshot.blessings)
         Return $true
     }
     Return $false
@@ -168,10 +167,15 @@ Function SaveFile() {
 }
 Init
 $mtsave = LoadSaveFile
-
-if (!(Test-Debug)) {
-    if (ModifySaveFile) { SaveFile }
-}
+#### USE THE GUI instead
+# $bundle = LoadJsonBundles("ember") #freestuff , OP, ember
+# if (!(Test-Debug)) {
+#     if (ModifySaveFile($bundle)) { SaveFile }
+# }
+# else {
+#     #Write-Debug "Artifacts to add: ${$bundle | out-string}"
+#     $bundle | out-string | Write-Debug
+# }
 #include the GUI
 . $guif
 

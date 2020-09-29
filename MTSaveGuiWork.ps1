@@ -35,6 +35,8 @@ $inputXML = @"
                 </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
+        <Button Content="Reload" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,40" Name="bReload"/>
+        <Button Content="Save" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,10" Name="bSave"/>
     </Grid>
 </Window>
 "@ 
@@ -80,11 +82,22 @@ $clickEvent = {
     Write-Host $WPFDGArtifacts.SelectedItems.count
     Write-Debug "Clicked row $($WPFDGArtifacts.SelectedItems)"
     $WPFDGArtifacts.SelectedItems | ForEach-Object {
-            Write-Host $_
+            Write-Host $_.relicDataID
         }
+    #ModifySaveFile($WPFDGArtifacts.SelectedItems.relicDataID) # load the selected objects into the save file view
+    ModifySaveFile($WPFDGArtifacts.SelectedItems | Select-Object -Property relicDataID) # load the selected objects into the save file view
+    $WPFDGSave.ItemsSource = $blessings
+    #$WPFDGSave.Items.Refresh() #Source = $blessings # reload list of blessings
+    #$Form.UpdateLayout
     }
 $WPFDGArtifacts.add_MouseDoubleClick($clickEvent)
 $WPFbSelect.add_Click($clickEvent)
+$WPFbReload.add_Click({LoadSaveFile; $WPFDGSave.ItemsSource = $blessings})
+$WPFbSave.add_Click({SaveFile})
 
+#TODO: add function to add the selected items to the list of artifacts that we need to save. 
+#  color the new rows
+#  add a save Button - DONE
+#  add a reload Button - DONE
 # $WPFDGArtifacts.AddHandler([System.Windows.Controls.DataGrid]::ClickEvent,$clickEvent)    
 $Form.ShowDialog() | out-null
