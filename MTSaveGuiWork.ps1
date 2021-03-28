@@ -10,7 +10,7 @@ $inputXML = @"
         Title="MainWindow">
     <TabControl Margin="0,0,0,0" Name="Artifacts">
         <TabItem Header="Artifacts">        
-        <Grid>
+        <Grid Background="LightSkyBlue">
             <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
                 <DataGrid.Columns>
                     <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
@@ -42,11 +42,23 @@ $inputXML = @"
         </Grid>
         </TabItem>
         <TabItem Header="Cards">
-            <Grid Background="#FF000095">
+            <Grid Background="PaleTurquoise">
+            <DataGrid IsReadOnly="True" Name="DGCards" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
+                <DataGrid.Columns>
+                    <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
+                    <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
+                            <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
             </Grid>
         </TabItem>
         <TabItem Header="Bundles">
-            <Grid Background="#FF009500">
+            <Grid Background="LightYellow">
                 <Label> Double click a bundle name to add the list of artifacts to your save file </Label>
                 <ListBox x:Name="lstBundles" Height="100"/>
             </Grid>
@@ -88,6 +100,7 @@ Get-FormVariables
 
 $WPFDGArtifacts.ItemsSource = $relicsCsv
 $WPFDGSave.ItemsSource = $blessings #LookupRelics($snapshot.blessings)#[pscustomobject]$snapshot.blessings
+$WPFDGCards.ItemsSource = $cards #LookupRelics($snapshot.blessings)#[pscustomobject]$snapshot.blessings
 # Format the GUI
 $WPFDGSave.CanUserSortColumns = $WPFDGArtifacts.CanUserSortColumns = $true;  
 # Handle doubleclick

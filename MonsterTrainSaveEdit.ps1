@@ -19,7 +19,7 @@
 
 #>
 
-#$DebugPreference = "Continue" #"SilentlyContinue"
+$DebugPreference = "Continue" #"SilentlyContinue"
 
 function Test-Debug {
     [CmdletBinding()]
@@ -82,7 +82,7 @@ Function LookupRelics ($relicids) {
         #$datasrc[$bless.relicDataID] = @{Description = $relicsTable[$bless.relicDataID] }
         $datasrc[$bless.relicDataID] = $relicsTable[$bless.relicDataID]
         #$datasrc+= $relicsCsv| Where {$_.relicDataID -eq $bless.relicDataID};
-        Write-Debug $relicsTable[$bless.relicDataID]
+        Write-Debug($relicsTable[$bless.relicDataID] | Out-String)
     }
     return $datasrc
     #if (Test-Debug) { $datasrc | Out-GridView }
@@ -100,6 +100,7 @@ Function LookupCards($cards) {
         Write-Debug $datasrc[$card.cardDataID]
     }
     #if (Test-Debug) {$datasrc | Out-GridView}
+    return $datasrc
 }
 
 Function FetchBundle($bname) {
@@ -151,7 +152,7 @@ Function LoadSaveFile() {
     #show cards list
     #if (Test-Debug) {$snapshot.deckState | Out-GridView}
     Write-Debug "== Cards List in Deck =="
-    LookupCards($snapshot.deckState)
+    $global:cards = LookupCards($snapshot.deckState)
     Return $snapshot
 }
 Function ModifySaveFile($bundle) {
