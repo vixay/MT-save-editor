@@ -19,7 +19,7 @@
 
 #>
 
-$DebugPreference = "Continue" #"SilentlyContinue"
+# $DebugPreference = "Continue" #"SilentlyContinue"
 
 function Test-Debug {
     [CmdletBinding()]

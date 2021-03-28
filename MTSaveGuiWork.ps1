@@ -60,7 +60,7 @@ $inputXML = @"
         <TabItem Header="Bundles">
             <Grid Background="LightYellow">
                 <Label> Double click a bundle name to add the list of artifacts to your save file </Label>
-                <ListBox x:Name="lstBundles" Height="100"/>
+                <ListBox x:Name="lstBundles" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,50,0,0" />
             </Grid>
         </TabItem>
     </TabControl>
