@@ -50,6 +50,7 @@ Function Init() {
     }
     else {
         $global:sf = Join-Path $env:LocalAPPDATA"Low" -ChildPath "Shiny Shoe\MonsterTrain\saves\save-singlePlayer.json"
+        #"Shiny Shoe\MonsterTrain\sync\saves\save-singlePlayer.json" #for GOG version
     }
     $global:relicscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Relics.csv"
     $global:cardscsvfile = Join-Path $MyScriptRoot -ChildPath "MT_Cards.csv"
@@ -67,6 +68,8 @@ Function Init() {
     #setup cards csv
     $global:cardsCsv = Import-Csv $cardscsvfile
     $global:cardsTable = $cardsCsv | Group-Object -AsHashTable -Property ID
+
+    LoadJsonBundles
     if (Test-Debug) {
         #$cardsCsv | Out-GridView
         #$cardsTable | Out-GridView
@@ -99,6 +102,15 @@ Function LookupCards($cards) {
     #if (Test-Debug) {$datasrc | Out-GridView}
 }
 
+Function FetchBundle($bname) {
+    if ($bname -and $bundles[$bname]) {
+        return $bundles[$bname]
+    }
+    else {
+        $choice = $bundles | Out-GridView -OutputMode Single -Title "Choose a bundle and click ok"
+        return $choice.Value
+    }
+}
 Function LoadJsonBundles($bname) {
     $files = Get-ChildItem $jsonf
     $global:bundles = @{}
@@ -114,13 +126,13 @@ Function LoadJsonBundles($bname) {
         #LookupRelics($c) | Out-GridView
         #write-host $c | ConvertTo-Json
     }
-    if ($bname -and $bundles[$bname]) {
-        return $bundles[$bname]
-    }
-    else {
-        $choice = $bundles | Out-GridView -OutputMode Single -Title "Choose a bundle and click ok"
-        return $choice.Value
-    }
+    # if ($bname -and $bundles[$bname]) {
+    #     return $bundles[$bname]
+    # }
+    # else {
+    #     $choice = $bundles | Out-GridView -OutputMode Single -Title "Choose a bundle and click ok"
+    #     return $choice.Value
+    # }
 }
 
 #Process save file

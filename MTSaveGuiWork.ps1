@@ -8,36 +8,50 @@ $inputXML = @"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
         Title="MainWindow">
-    <Grid>
-        <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
-            <DataGrid.Columns>
-                <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
-                <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
+    <TabControl Margin="0,0,0,0" Name="Artifacts">
+        <TabItem Header="Artifacts">        
+        <Grid>
+            <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
+                <DataGrid.Columns>
+                    <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
+                    <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
+                            <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Button Content="Select" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Margin="325,0,0,0" Name="bSelect"/>
+            <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden">
+                <DataGrid.Columns>
+                    <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding relicDataID}" Width="40" />
+                    <DataGridTextColumn IsReadOnly="True" Header="Name" Binding="{Binding Name}" Width="160" />
+                    <DataGridTextColumn IsReadOnly="True" Header="Description" Binding="{Binding Description}">
                         <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="Select" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Margin="325,0,0,0" Name="bSelect"/>
-        <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden">
-            <DataGrid.Columns>
-                <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding relicDataID}" Width="40" />
-                <DataGridTextColumn IsReadOnly="True" Header="Name" Binding="{Binding Name}" Width="160" />
-                <DataGridTextColumn IsReadOnly="True" Header="Description" Binding="{Binding Description}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="Reload" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,40" Name="bReload"/>
-        <Button Content="Save" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,10" Name="bSave"/>
-    </Grid>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Button Content="Reload" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,40" Name="bReload"/>
+            <Button Content="Save" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="70" Margin="325,0,0,10" Name="bSave"/>
+        </Grid>
+        </TabItem>
+        <TabItem Header="Cards">
+            <Grid Background="#FF000095">
+            </Grid>
+        </TabItem>
+        <TabItem Header="Bundles">
+            <Grid Background="#FF009500">
+                <Label> Double click a bundle name to add the list of artifacts to your save file </Label>
+                <ListBox x:Name="lstBundles" Height="100"/>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>
 "@ 
   
@@ -99,5 +113,23 @@ $WPFbSave.add_Click({SaveFile})
 #  color the new rows
 #  add a save Button - DONE
 #  add a reload Button - DONE
-# $WPFDGArtifacts.AddHandler([System.Windows.Controls.DataGrid]::ClickEvent,$clickEvent)    
+# $WPFDGArtifacts.AddHandler([System.Windows.Controls.DataGrid]::ClickEvent,$clickEvent)
+#$temp = $bundles| Select-Object -Property @{Name='CollectionName';Expression={$_.Keys}}
+#$temp = $bundles.Keys | out-string
+$loadbundle = {
+    Write-Host $WPFlstBundles.SelectedItems.count
+    Write-Debug "Clicked row $($WPFlstBundles.SelectedItems)"
+    $WPFlstBundles.SelectedItems | ForEach-Object {
+            Write-Host $_
+            ModifySaveFile(FetchBundle($_))
+        }
+    $WPFDGSave.ItemsSource = $blessings
+    #ModifySaveFile($WPFDGArtifacts.SelectedItems | Select-Object -Property relicDataID) # load the selected objects into the save file view
+}
+$WPFlstBundles.add_MouseDoubleClick($loadbundle)
+foreach ($key in $bundles.Keys) {
+    $WPFlstBundles.AddChild($key)
+}
+#$WPFlstBundles.ItemsSource = $temp
+
 $Form.ShowDialog() | out-null
