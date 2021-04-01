@@ -8,10 +8,23 @@ $inputXML = @"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
         Title="MainWindow">
+    <Window.Resources>
+        <Style x:Key="AlternatingRowStyle" TargetType="{x:Type Control}" >
+            <Setter Property="Background" Value="LightGray"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">                            
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="Foreground" Value="Black"/>                                
+                </Trigger>                            
+            </Style.Triggers>
+        </Style>                    
+    </Window.Resources>
     <TabControl Margin="0,0,0,0" Name="Artifacts">
         <TabItem Header="Artifacts">        
         <Grid Background="LightSkyBlue">
-            <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
+            <DataGrid IsReadOnly="True" Name="DGSave" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden"
+            AlternationCount="2" ItemContainerStyle="{StaticResource AlternatingRowStyle}">
                 <DataGrid.Columns>
                     <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
                     <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
@@ -24,7 +37,8 @@ $inputXML = @"
                 </DataGrid.Columns>
             </DataGrid>
             <Button Content="Select" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Margin="325,0,0,0" Name="bSelect"/>
-            <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden">
+            <DataGrid IsReadOnly="True" Name="DGArtifacts" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="400,0,0,0" HorizontalScrollBarVisibility="Hidden"
+            AlternationCount="2" ItemContainerStyle="{StaticResource AlternatingRowStyle}">
                 <DataGrid.Columns>
                     <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding relicDataID}" Width="40" />
                     <DataGridTextColumn IsReadOnly="True" Header="Name" Binding="{Binding Name}" Width="160" />
@@ -43,7 +57,8 @@ $inputXML = @"
         </TabItem>
         <TabItem Header="Cards">
             <Grid Background="PaleTurquoise">
-            <DataGrid IsReadOnly="True" Name="DGCards" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden">
+            <DataGrid IsReadOnly="True" Name="DGCards" AutoGenerateColumns="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,0,0,0" HorizontalScrollBarVisibility="Hidden"
+            AlternationCount="2" ItemContainerStyle="{StaticResource AlternatingRowStyle}">
                 <DataGrid.Columns>
                     <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Key}" Width="40" />
                     <DataGridTextColumn IsReadOnly="True" Header="Value" Binding="{Binding Value}" Width="280">
@@ -60,7 +75,7 @@ $inputXML = @"
         <TabItem Header="Bundles">
             <Grid Background="LightYellow">
                 <Label> Double click a bundle name to add the list of artifacts to your save file </Label>
-                <ListBox x:Name="lstBundles" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,50,0,0" />
+                <ListBox x:Name="lstBundles" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="320" Margin="0,50,0,0" AlternationCount="2" ItemContainerStyle="{StaticResource AlternatingRowStyle}"/>
             </Grid>
         </TabItem>
     </TabControl>
